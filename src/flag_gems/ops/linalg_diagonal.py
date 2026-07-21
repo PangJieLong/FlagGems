@@ -35,8 +35,8 @@ def diagonal_kernel(
 
     # ========== 2D ==========
     if ndim == 2:
-        # 输入 2 维，输出 1 维（对角线）
-        # 对角线在输出唯一维，对应输入 dim1=0, dim2=1
+        # Input: 2D, Output: 1D (diagonal)
+        # The output is one-dimensional, corresponding to input dim1=0 and dim2=1
         c0 = idx  # diag index
         if offset >= 0:
             input_offset = c0 * in_stride0 + (c0 + offset) * in_stride1
@@ -47,27 +47,27 @@ def diagonal_kernel(
 
     # ========== 3D ==========
     elif ndim == 3:
-        # 输出 2 维: [out0, out1]
+        # Output: 2D [out0, out1]
         c1 = idx % out_size1
         c0 = idx // out_size1
 
-        # 根据 dim1,dim2 组合计算偏移，对角线在 max(dim1,dim2) 位置
+        # Compute offset based on dim1/dim2 combination, diagonal is placed at max(dim1, dim2)
         if dim1 == 0 and dim2 == 1:
-            # 输出形状: [in_size2, diag_len]
+            # Output shape: [in_size2, diag_len]
             # c0 -> in_size2, c1 -> diag
             if offset >= 0:
                 input_offset = c0 * in_stride2 + c1 * in_stride0 + (c1 + offset) * in_stride1
             else:
                 input_offset = c0 * in_stride2 + (c1 - offset) * in_stride0 + c1 * in_stride1
         elif dim1 == 0 and dim2 == 2:
-            # 输出形状: [in_size1, diag_len]
+            # Output shape: [in_size1, diag_len]
             # c0 -> in_size1, c1 -> diag
             if offset >= 0:
                 input_offset = c0 * in_stride1 + c1 * in_stride0 + (c1 + offset) * in_stride2
             else:
                 input_offset = c0 * in_stride1 + (c1 - offset) * in_stride0 + c1 * in_stride2
         else:  # dim1 == 1 and dim2 == 2
-            # 输出形状: [in_size0, diag_len]
+            # Output shape: [in_size0, diag_len]
             # c0 -> in_size0, c1 -> diag
             if offset >= 0:
                 input_offset = c0 * in_stride0 + c1 * in_stride1 + (c1 + offset) * in_stride2
@@ -85,45 +85,45 @@ def diagonal_kernel(
         c1 = (idx // s2) % s1
         c0 = idx // (s1 * s2)
 
-        # 对角线在 max(dim1,dim2) 位置
+        # Diagonal is placed at max(dim1, dim2)
         if dim1 == 0 and dim2 == 1:
-            # 输出形状: [in_size2, in_size3, diag_len]
-            # c0->in_size2, c1->in_size3, c2->diag
+            # Output shape: [in_size2, in_size3, diag_len]
+            # c0 -> in_size2, c1 -> in_size3, c2 -> diag
             if offset >= 0:
                 input_offset = c0 * in_stride2 + c1 * in_stride3 + c2 * in_stride0 + (c2 + offset) * in_stride1
             else:
                 input_offset = c0 * in_stride2 + c1 * in_stride3 + (c2 - offset) * in_stride0 + c2 * in_stride1
         elif dim1 == 0 and dim2 == 2:
-            # 输出形状: [in_size1, in_size3, diag_len]
-            # c0->in_size1, c1->in_size3, c2->diag
+            # Output shape: [in_size1, in_size3, diag_len]
+            # c0 -> in_size1, c1 -> in_size3, c2 -> diag
             if offset >= 0:
                 input_offset = c0 * in_stride1 + c1 * in_stride3 + c2 * in_stride0 + (c2 + offset) * in_stride2
             else:
                 input_offset = c0 * in_stride1 + c1 * in_stride3 + (c2 - offset) * in_stride0 + c2 * in_stride2
         elif dim1 == 0 and dim2 == 3:
-            # 输出形状: [in_size1, in_size2, diag_len]
-            # c0->in_size1, c1->in_size2, c2->diag
+            # Output shape: [in_size1, in_size2, diag_len]
+            # c0 -> in_size1, c1 -> in_size2, c2 -> diag
             if offset >= 0:
                 input_offset = c0 * in_stride1 + c1 * in_stride2 + c2 * in_stride0 + (c2 + offset) * in_stride3
             else:
                 input_offset = c0 * in_stride1 + c1 * in_stride2 + (c2 - offset) * in_stride0 + c2 * in_stride3
         elif dim1 == 1 and dim2 == 2:
-            # 输出形状: [in_size0, in_size3, diag_len]
-            # c0->in_size0, c1->in_size3, c2->diag
+            # Output shape: [in_size0, in_size3, diag_len]
+            # c0 -> in_size0, c1 -> in_size3, c2 -> diag
             if offset >= 0:
                 input_offset = c0 * in_stride0 + c1 * in_stride3 + c2 * in_stride1 + (c2 + offset) * in_stride2
             else:
                 input_offset = c0 * in_stride0 + c1 * in_stride3 + (c2 - offset) * in_stride1 + c2 * in_stride2
         elif dim1 == 1 and dim2 == 3:
-            # 输出形状: [in_size0, in_size2, diag_len]
-            # c0->in_size0, c1->in_size2, c2->diag
+            # Output shape: [in_size0, in_size2, diag_len]
+            # c0 -> in_size0, c1 -> in_size2, c2 -> diag
             if offset >= 0:
                 input_offset = c0 * in_stride0 + c1 * in_stride2 + c2 * in_stride1 + (c2 + offset) * in_stride3
             else:
                 input_offset = c0 * in_stride0 + c1 * in_stride2 + (c2 - offset) * in_stride1 + c2 * in_stride3
         else:  # dim1 == 2 and dim2 == 3
-            # 输出形状: [in_size0, in_size1, diag_len]
-            # c0->in_size0, c1->in_size1, c2->diag
+            # Output shape: [in_size0, in_size1, diag_len]
+            # c0 -> in_size0, c1 -> in_size1, c2 -> diag
             if offset >= 0:
                 input_offset = c0 * in_stride0 + c1 * in_stride1 + c2 * in_stride2 + (c2 + offset) * in_stride3
             else:
@@ -143,61 +143,61 @@ def diagonal_kernel(
         c0 = idx // (s1 * s2 * s3)
 
         if dim1 == 0 and dim2 == 1:
-            # 输出顺序: [in2, in3, in4, diag]
+            # Output order: [in2, in3, in4, diag]
             if offset >= 0:
                 input_offset = c0 * in_stride2 + c1 * in_stride3 + c2 * in_stride4 + c3 * in_stride0 + (c3 + offset) * in_stride1
             else:
                 input_offset = c0 * in_stride2 + c1 * in_stride3 + c2 * in_stride4 + (c3 - offset) * in_stride0 + c3 * in_stride1
         elif dim1 == 0 and dim2 == 2:
-            # 输出顺序: [in1, in3, in4, diag]
+            # Output order: [in1, in3, in4, diag]
             if offset >= 0:
                 input_offset = c0 * in_stride1 + c1 * in_stride3 + c2 * in_stride4 + c3 * in_stride0 + (c3 + offset) * in_stride2
             else:
                 input_offset = c0 * in_stride1 + c1 * in_stride3 + c2 * in_stride4 + (c3 - offset) * in_stride0 + c3 * in_stride2
         elif dim1 == 0 and dim2 == 3:
-            # 输出顺序: [in1, in2, in4, diag]
+            # Output order: [in1, in2, in4, diag]
             if offset >= 0:
                 input_offset = c0 * in_stride1 + c1 * in_stride2 + c2 * in_stride4 + c3 * in_stride0 + (c3 + offset) * in_stride3
             else:
                 input_offset = c0 * in_stride1 + c1 * in_stride2 + c2 * in_stride4 + (c3 - offset) * in_stride0 + c3 * in_stride3
         elif dim1 == 0 and dim2 == 4:
-            # 输出顺序: [in1, in2, in3, diag]
+            # Output order: [in1, in2, in3, diag]
             if offset >= 0:
                 input_offset = c0 * in_stride1 + c1 * in_stride2 + c2 * in_stride3 + c3 * in_stride0 + (c3 + offset) * in_stride4
             else:
                 input_offset = c0 * in_stride1 + c1 * in_stride2 + c2 * in_stride3 + (c3 - offset) * in_stride0 + c3 * in_stride4
         elif dim1 == 1 and dim2 == 2:
-            # 输出顺序: [in0, in3, in4, diag]
+            # Output order: [in0, in3, in4, diag]
             if offset >= 0:
                 input_offset = c0 * in_stride0 + c1 * in_stride3 + c2 * in_stride4 + c3 * in_stride1 + (c3 + offset) * in_stride2
             else:
                 input_offset = c0 * in_stride0 + c1 * in_stride3 + c2 * in_stride4 + (c3 - offset) * in_stride1 + c3 * in_stride2
         elif dim1 == 1 and dim2 == 3:
-            # 输出顺序: [in0, in2, in4, diag]
+            # Output order: [in0, in2, in4, diag]
             if offset >= 0:
                 input_offset = c0 * in_stride0 + c1 * in_stride2 + c2 * in_stride4 + c3 * in_stride1 + (c3 + offset) * in_stride3
             else:
                 input_offset = c0 * in_stride0 + c1 * in_stride2 + c2 * in_stride4 + (c3 - offset) * in_stride1 + c3 * in_stride3
         elif dim1 == 1 and dim2 == 4:
-            # 输出顺序: [in0, in2, in3, diag]
+            # Output order: [in0, in2, in3, diag]
             if offset >= 0:
                 input_offset = c0 * in_stride0 + c1 * in_stride2 + c2 * in_stride3 + c3 * in_stride1 + (c3 + offset) * in_stride4
             else:
                 input_offset = c0 * in_stride0 + c1 * in_stride2 + c2 * in_stride3 + (c3 - offset) * in_stride1 + c3 * in_stride4
         elif dim1 == 2 and dim2 == 3:
-            # 输出顺序: [in0, in1, in4, diag]
+            # Output order: [in0, in1, in4, diag]
             if offset >= 0:
                 input_offset = c0 * in_stride0 + c1 * in_stride1 + c2 * in_stride4 + c3 * in_stride2 + (c3 + offset) * in_stride3
             else:
                 input_offset = c0 * in_stride0 + c1 * in_stride1 + c2 * in_stride4 + (c3 - offset) * in_stride2 + c3 * in_stride3
         elif dim1 == 2 and dim2 == 4:
-            # 输出顺序: [in0, in1, in3, diag]
+            # Output order: [in0, in1, in3, diag]
             if offset >= 0:
                 input_offset = c0 * in_stride0 + c1 * in_stride1 + c2 * in_stride3 + c3 * in_stride2 + (c3 + offset) * in_stride4
             else:
                 input_offset = c0 * in_stride0 + c1 * in_stride1 + c2 * in_stride3 + (c3 - offset) * in_stride2 + c3 * in_stride4
         else:  # dim1 == 3 and dim2 == 4
-            # 输出顺序: [in0, in1, in2, diag]
+            # Output order: [in0, in1, in2, diag]
             if offset >= 0:
                 input_offset = c0 * in_stride0 + c1 * in_stride1 + c2 * in_stride2 + c3 * in_stride3 + (c3 + offset) * in_stride4
             else:
@@ -218,7 +218,7 @@ def linalg_diagonal(A: torch.Tensor, offset: int = 0, dim1: int = -2, dim2: int 
     dim2 = _normalize_dim(dim2, ndim)
     if dim1 == dim2:
         raise ValueError("dim1 and dim2 cannot be the same")
-    # 保证 dim1 < dim2 简化处理
+    # Ensure dim1 < dim2 for simpler handling
     if dim1 > dim2:
         dim1, dim2 = dim2, dim1
 
@@ -232,19 +232,19 @@ def linalg_diagonal(A: torch.Tensor, offset: int = 0, dim1: int = -2, dim2: int 
         out_shape = list(A.shape)
         for d in sorted([dim1, dim2], reverse=True):
             out_shape.pop(d)
-        # 对角线维度插入在 max(dim1, dim2) 位置
+        # Insert the diagonal dimension at max(dim1, dim2)
         out_shape.insert(max(dim1, dim2), 0)
         return torch.empty(tuple(out_shape), dtype=A.dtype, device=A.device)
 
     out_shape = list(A.shape)
     for d in sorted([dim1, dim2], reverse=True):
         out_shape.pop(d)
-    # 对角线插入在 max(dim1, dim2) 位置
+    # Insert the diagonal dimension at max(dim1, dim2)
     out_shape.insert(max(dim1, dim2), diag_len)
     out_shape = tuple(out_shape)
     out = torch.empty(out_shape, dtype=A.dtype, device=A.device)
 
-    # 补齐到 5 维
+    # Pad to 5 dimensions
     in_sizes = list(A.shape) + [1] * (5 - ndim)
     in_strides = list(A.stride()) + [1] * (5 - ndim)
     out_sizes = list(out_shape) + [1] * (5 - len(out_shape))

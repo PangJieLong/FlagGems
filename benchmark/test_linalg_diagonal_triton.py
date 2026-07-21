@@ -14,8 +14,8 @@ class DiagonalBenchmark(base.Benchmark):
             (512, 512),
             (1024, 1024),
             (2048, 2048),
-            (128, 256, 256),       # 3 维
-            (64, 128, 128, 128),   # 4 维
+            (128, 256, 256),       
+            (64, 128, 128, 128),   
         ]
         for shape in shapes:
             A = utils.generate_tensor_input(shape, dtype, self.device)
