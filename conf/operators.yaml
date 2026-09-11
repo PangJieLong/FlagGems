@@ -10434,7 +10434,7 @@ ops:
   - Utility
   - NeuralNetwork
   stages:
-  - alpha: '5.4'
+  - beta: '5.4'
 - id: pairwise_distance
   description: 'Computes the pairwise distance between input vectors, or between columns
     of input matrices.
