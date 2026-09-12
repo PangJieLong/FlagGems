@@ -518,14 +518,13 @@ def pad_sequence(sequences, batch_first=False, padding_value=0.0):
             raise RuntimeError(
                 "The size of tensor a must match the size of tensor b at non-singleton dimension"
             )
-        if sequence.dtype != dtype:
-            raise RuntimeError(
-                "pad_sequence expects all input tensors to have the same dtype"
-            )
         if sequence.device != device:
             raise RuntimeError(
                 "pad_sequence expects all input tensors to be on the same device"
             )
+        # Match native output dtype and the generic/Hygon backends.
+        if sequence.dtype != dtype:
+            sequence = sequence.to(dtype=dtype)
         lengths.append(shape[0])
         contiguous.append(
             sequence if sequence.is_contiguous() else sequence.contiguous()

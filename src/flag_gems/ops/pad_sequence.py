@@ -209,8 +209,9 @@ def _pad_sequence_direct_copy(
 
 def _pad_sequence_batch_copy(sequences, out, batch, max_len, feature, padding_value):
     """Linear copy strategy for medium workloads with batch_first=False."""
+    # Preserve the trailing dimensions for copy_; the kernel still copies linearly.
     temp = torch.full(
-        (max_len, batch, feature),
+        out.shape,
         padding_value,
         dtype=out.dtype,
         device=out.device,
@@ -274,40 +275,60 @@ def pad_sequence(sequences, batch_first=False, padding_value=0.0):
     """Pad variable length tensors into a single batch tensor."""
     logger.debug("GEMS PAD_SEQUENCE")
 
-    if len(sequences) == 0:
+    batch = len(sequences)
+    if batch == 0:
         raise RuntimeError("pad_sequence empty input")
 
-    batch = len(sequences)
-    device = sequences[0].device
-    dtype = sequences[0].dtype
+    first = sequences[0]
+    first_shape = first.shape
+    if len(first_shape) == 0:
+        raise RuntimeError("pad_sequence requires at least one dimension")
+    device = first.device
+    dtype = first.dtype
+    trailing_shape = first_shape[1:]
+    max_len = first_shape[0]
+    seqs = [first if first.is_contiguous() else first.contiguous()]
 
-    # Ensure all sequences are contiguous
-    seqs = [seq if seq.is_contiguous() else seq.contiguous() for seq in sequences]
-
-    max_len = max(seq.shape[0] for seq in seqs)
+    for sequence in sequences[1:]:
+        shape = sequence.shape
+        if len(shape) == 0:
+            raise RuntimeError("pad_sequence requires at least one dimension")
+        if shape[1:] != trailing_shape:
+            raise RuntimeError("pad_sequence expects matching trailing dimensions")
+        if sequence.device != device:
+            raise RuntimeError(
+                "pad_sequence expects all input tensors to be on the same device"
+            )
+        # Match native output dtype and the Hygon backend. Homogeneous inputs
+        # do not need an additional conversion kernel.
+        if sequence.dtype != dtype:
+            sequence = sequence.to(dtype=dtype)
+        if not sequence.is_contiguous():
+            sequence = sequence.contiguous()
+        seqs.append(sequence)
+        max_len = max(max_len, shape[0])
 
     feature = 1
-    for d in seqs[0].shape[1:]:
+    for d in trailing_shape:
         feature *= d
 
     if batch_first:
-        out_shape = (batch, max_len, *seqs[0].shape[1:])
+        out_shape = (batch, max_len, *trailing_shape)
     else:
-        out_shape = (max_len, batch, *seqs[0].shape[1:])
+        out_shape = (max_len, batch, *trailing_shape)
 
     out = torch.empty(out_shape, dtype=dtype, device=device)
-
     total_elements = batch * max_len * feature
+    if total_elements == 0:
+        return out
 
-    # Dispatch based on batch size and workload
+    # Keep the existing dispatch thresholds and kernel implementations.
     if batch <= 2:
         return _pad_sequence_small(
             seqs, out, batch, max_len, feature, batch_first, padding_value
         )
     elif batch <= 8:
         if total_elements <= _DIRECT_COPY_THRESHOLD or batch_first:
-            # Direct copy is simpler and faster for small workloads,
-            # and also handles batch_first=True layout correctly.
             return _pad_sequence_direct_copy(
                 seqs, out, batch, max_len, feature, batch_first, padding_value
             )
